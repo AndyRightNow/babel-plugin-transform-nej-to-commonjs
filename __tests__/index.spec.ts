@@ -1,3 +1,4 @@
+/* tslint:disable */
 import { default as transformNejToCommonjsPlugin } from './../src/index';
 import * as babel from 'babel-core';
 
@@ -16,9 +17,7 @@ describe('babel-plugin-transform-nej-to-commonjs-plugin tests', () => {
                     withAlias,
                     withOtherAlias,
                     injected1,
-                    injected2,
-                    injected3,
-                    injected4
+                    injected2
                 ) {
                     var exported = {
                         something: something,
@@ -34,14 +33,34 @@ describe('babel-plugin-transform-nej-to-commonjs-plugin tests', () => {
             let {
                 code
             } = babel.transform(
-                source, {
-                    plugins: [
-                        transformNejToCommonjsPlugin,
-                    ],
-                },
-            );
+                    source, {
+                        plugins: [
+                            transformNejToCommonjsPlugin,
+                        ],
+                    },
+                );
 
-            console.log(code);
+            expect(code).toEqual(
+                `var something = require('./something.js');
+
+var somethingElse = require('text!./somethingelse.html');
+
+var withAlias = require('pro/with/alias');
+
+var withOtherAlias = require('{pro}/with/other/alias.js');
+
+var injected1 = {};
+var injected2 = {};
+
+var exported = {
+    something: something,
+    somethingElse: somethingElse,
+    withAlias: withAlias,
+    withOtherAlias: withOtherAlias
+};
+
+module.exports = exported;`,
+            );
         });
     });
 });
