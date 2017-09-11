@@ -5,7 +5,7 @@
   "main": "./dist/index.js",
   "scripts": {
     "test": "jest",
-    "build": "tsc"
+    "build": "del-cli ./dist && tsc"
   },
   "keywords": [
     "babel",
@@ -20,15 +20,41 @@
     "@types/babel-traverse": "^6.25.2",
     "@types/babel-types": "^6.25.1",
     "@types/chai": "^4.0.4",
+    "@types/jest": "^20.0.8",
     "babel-core": "^6.26.0",
+    "babel-plugin-tester": "^4.0.0",
     "babel-traverse": "^6.26.0",
     "chai": "^4.1.2",
+    "del-cli": "^1.1.0",
     "jest": "^21.0.2",
+    "ts-jest": "^21.0.0",
+    "tslint": "^5.7.0",
     "typescript": "^2.5.2"
   },
   "dependencies": {
     "@types/lodash": "^4.14.74",
     "babel-types": "^6.26.0",
     "lodash": "^4.17.4"
+  },
+  "jest": {
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "**/*.{ts}",
+      "!**/__tests__/**",
+      "!**/node_modules/**"
+    ],
+    "verbose": true,
+    "moduleDirectories": [
+      "node_modules"
+    ],
+    "transform": {
+      ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    },
+    "testRegex": "/__tests__/.*\\.spec\\.(ts)$",
+    "moduleFileExtensions": [
+      "ts",
+      "js",
+      "json"
+    ]
   }
 }

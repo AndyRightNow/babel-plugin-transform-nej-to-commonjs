@@ -5,7 +5,6 @@
         "removeComments": true,
         "preserveConstEnums": true,
         "sourceMap": true,
-        "outDir": "./dist",
         "noImplicitThis": true,
         "strict": true,
         "noImplicitReturns": true,
