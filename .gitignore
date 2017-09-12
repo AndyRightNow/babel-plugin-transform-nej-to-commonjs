@@ -1,2 +1,4 @@
 node_modules
 coverage
+fixtures/dist
+fixtures/lib

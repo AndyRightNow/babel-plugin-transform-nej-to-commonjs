@@ -13,7 +13,17 @@ import {
     createInjectedNejParamDeclaration,
     createExportStatement,
     createCommentBlock,
+    transformDependencyWithNejAliases,
 } from './helpers';
+
+interface IPluginOptions {
+    nejPathAliases: {
+        /**
+         * E.g. 'pro': 'src/javascript/'
+         */
+        [alias: string]: string;
+    };
+}
 
 export default function (): babel.PluginObj {
     let programPath: NodePath;
@@ -23,7 +33,8 @@ export default function (): babel.PluginObj {
             Program(path: NodePath) {
                 programPath = path;
             },
-            CallExpression(path: NodePath) {
+            CallExpression(path: NodePath, state: { opts: IPluginOptions; }) {
+                const pluginOptions = state.opts;
                 const node = path.node as t.CallExpression;
                 const callee = node.callee;
                 const isNejDefine = t.isMemberExpression(callee) &&
@@ -45,7 +56,7 @@ export default function (): babel.PluginObj {
                         if (t.isArrayExpression(arg)) {
                             dependencyList = _.map(arg.elements, (el: t.StringLiteral) => {
                                 t.assertStringLiteral(el);
-                                return el.value;
+                                return transformDependencyWithNejAliases(el.value, pluginOptions.nejPathAliases);
                             });
                         } else if (t.isFunctionExpression(arg)) {
                             functionDefinition = arg;
@@ -97,16 +108,14 @@ export default function (): babel.PluginObj {
                     const lastStmtOfFunctionBody = _.last(functionDefinition.body.body);
                     let functionBody = functionDefinition.body.body;
 
-                    if (!lastStmtOfFunctionBody) {
-                        throw new Error('Invalid NEJ function definition');
-                    }
-
-                    if (dependencyVarNameList.length > dependencyList.length &&
-                        !t.isReturnStatement(lastStmtOfFunctionBody)) {
-                        exportedExp = (functionDefinition.params as t.Identifier[])[dependencyList.length];
-                    } else if (t.isReturnStatement(lastStmtOfFunctionBody)) {
-                        exportedExp = lastStmtOfFunctionBody.argument;
-                        functionBody = _.slice(functionBody, 0, functionBody.length - 1);
+                    if (lastStmtOfFunctionBody) {
+                        if (dependencyVarNameList.length > dependencyList.length &&
+                            !t.isReturnStatement(lastStmtOfFunctionBody)) {
+                            exportedExp = (functionDefinition.params as t.Identifier[])[dependencyList.length];
+                        } else if (t.isReturnStatement(lastStmtOfFunctionBody)) {
+                            exportedExp = lastStmtOfFunctionBody.argument;
+                            functionBody = _.slice(functionBody, 0, functionBody.length - 1);
+                        }
                     }
 
                     const requireStatements = _.map(_.slice(

@@ -4,9 +4,10 @@
   "description": "A babel plugin used to transform code using NEJ module system to CommonJS module system",
   "main": "./dist/index.js",
   "scripts": {
+    "dev:postinstall": "bower install",
     "test": "jest",
     "build": "del-cli ./dist && tsc",
-    "test:fixtures": "babel ./fixtures/src --out-dir ./fixtures/dist"
+    "test:fixtures": "del-cli ./fixtures/dist && babel ./fixtures/src --out-dir ./fixtures/dist/src && babel ./fixtures/lib --out-dir ./fixtures/dist/lib"
   },
   "keywords": [
     "babel",

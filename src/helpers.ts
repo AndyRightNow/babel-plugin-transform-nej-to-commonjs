@@ -1,5 +1,6 @@
 import * as t from 'babel-types';
 import CONSTANTS from './constants';
+import { forOwn } from 'lodash';
 
 export function createRequireStatement(
     varName: string,
@@ -57,4 +58,29 @@ export function createCommentBlock(value: string): t.CommentBlock {
             },
         },
     };
+}
+
+export function transformDependencyWithNejAliases(
+    dependencyDir: string,
+    nejAliases?: { [alias: string]: string; },
+): string {
+    if (!nejAliases) {
+        return dependencyDir;
+    }
+
+    forOwn(nejAliases, (mappedPath: string, alias: string) => {
+        const aliasRE = new RegExp(`(\{${alias}\})|(^${alias})(?:[\\\/]+)`);
+
+        dependencyDir = dependencyDir.replace(aliasRE, (matched: string, p1: string, p2: string) => {
+            if (p1) {
+                return matched.replace(p1, mappedPath);
+            } else if (p2) {
+                return matched.replace(p2, mappedPath);
+            } else {
+                return matched;
+            }
+        });
+    });
+
+    return dependencyDir.replace(/[\/\\]+/g, '/');
 }

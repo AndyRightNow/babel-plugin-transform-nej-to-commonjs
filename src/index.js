@@ -12,7 +12,8 @@ function default_1() {
             Program: function (path) {
                 programPath = path;
             },
-            CallExpression: function (path) {
+            CallExpression: function (path, state) {
+                var pluginOptions = state.opts;
                 var node = path.node;
                 var callee = node.callee;
                 var isNejDefine = t.isMemberExpression(callee) &&
@@ -31,7 +32,7 @@ function default_1() {
                         if (t.isArrayExpression(arg)) {
                             dependencyList_1 = _.map(arg.elements, function (el) {
                                 t.assertStringLiteral(el);
-                                return el.value;
+                                return helpers_1.transformDependencyWithNejAliases(el.value, pluginOptions.nejPathAliases);
                             });
                         }
                         else if (t.isFunctionExpression(arg)) {
@@ -79,16 +80,15 @@ function default_1() {
                     var exportedExp = t.objectExpression([]);
                     var lastStmtOfFunctionBody = _.last(functionDefinition_1.body.body);
                     var functionBody = functionDefinition_1.body.body;
-                    if (!lastStmtOfFunctionBody) {
-                        throw new Error('Invalid NEJ function definition');
-                    }
-                    if (dependencyVarNameList_1.length > dependencyList_1.length &&
-                        !t.isReturnStatement(lastStmtOfFunctionBody)) {
-                        exportedExp = functionDefinition_1.params[dependencyList_1.length];
-                    }
-                    else if (t.isReturnStatement(lastStmtOfFunctionBody)) {
-                        exportedExp = lastStmtOfFunctionBody.argument;
-                        functionBody = _.slice(functionBody, 0, functionBody.length - 1);
+                    if (lastStmtOfFunctionBody) {
+                        if (dependencyVarNameList_1.length > dependencyList_1.length &&
+                            !t.isReturnStatement(lastStmtOfFunctionBody)) {
+                            exportedExp = functionDefinition_1.params[dependencyList_1.length];
+                        }
+                        else if (t.isReturnStatement(lastStmtOfFunctionBody)) {
+                            exportedExp = lastStmtOfFunctionBody.argument;
+                            functionBody = _.slice(functionBody, 0, functionBody.length - 1);
+                        }
                     }
                     var requireStatements = _.map(_.slice(dependencyList_1, 0, dependencyVarNameList_1.length), function (dep, index) {
                         return helpers_1.createRequireStatement(dependencyVarNameList_1[index], dep);

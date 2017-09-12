@@ -2,6 +2,7 @@
 exports.__esModule = true;
 var t = require("babel-types");
 var constants_1 = require("./constants");
+var lodash_1 = require("lodash");
 function createRequireStatement(varName, requireDir) {
     return t.variableDeclaration('var', [t.variableDeclarator(t.identifier(varName), t.callExpression(t.identifier(constants_1["default"].COMMONJS_REQUIRE), [t.stringLiteral(requireDir)]))]);
 }
@@ -33,4 +34,25 @@ function createCommentBlock(value) {
     };
 }
 exports.createCommentBlock = createCommentBlock;
+function transformDependencyWithNejAliases(dependencyDir, nejAliases) {
+    if (!nejAliases) {
+        return dependencyDir;
+    }
+    lodash_1.forOwn(nejAliases, function (mappedPath, alias) {
+        var aliasRE = new RegExp("({" + alias + "})|(^" + alias + ")(?:[\\/]+)");
+        dependencyDir = dependencyDir.replace(aliasRE, function (matched, p1, p2) {
+            if (p1) {
+                return matched.replace(p1, mappedPath);
+            }
+            else if (p2) {
+                return matched.replace(p2, mappedPath);
+            }
+            else {
+                return matched;
+            }
+        });
+    });
+    return dependencyDir.replace(/[\/\\]+/g, '/');
+}
+exports.transformDependencyWithNejAliases = transformDependencyWithNejAliases;
 //# sourceMappingURL=helpers.js.map
