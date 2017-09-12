@@ -1,5 +1,5 @@
 NEJ.define([
-    './module1.js'
+    'pro/module1'
 ], function (
     module1
 ) {

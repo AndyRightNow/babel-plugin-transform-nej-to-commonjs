@@ -4,7 +4,8 @@
             "nejPathAliases": {
                 "platform": "./platform/",
                 "base": "fixtures/dist/lib/nej/src/base/",
-                "util": "fixtures/dist/lib/nej/src/util/"
+                "util": "fixtures/dist/lib/nej/src/util/",
+                "pro": "fixtures/dist/src/"
             }
         }]
     ]
