@@ -35,8 +35,9 @@ function default_1() {
                                 return helpers_1.transformDependencyWithNejAliases(el.value, pluginOptions.nejPathAliases);
                             });
                         }
-                        else if (t.isFunctionExpression(arg)) {
-                            functionDefinition_1 = arg;
+                        else if (t.isFunctionExpression(arg) ||
+                            t.isArrowFunctionExpression(arg)) {
+                            functionDefinition_1 = helpers_1.transformArrowFunctionToFunction(arg);
                         }
                         else if (t.isIdentifier(arg)) {
                             functionDefinitionVar_1 = arg;
@@ -61,8 +62,9 @@ function default_1() {
                                     if (t.isIdentifier(left) &&
                                         functionDefinitionVar_1 &&
                                         left.name === functionDefinitionVar_1.name &&
-                                        t.isFunctionExpression(right)) {
-                                        functionDefinition_1 = right;
+                                        (t.isFunctionExpression(right) ||
+                                            t.isArrowFunctionExpression(right))) {
+                                        functionDefinition_1 = helpers_1.transformArrowFunctionToFunction(right);
                                         vdaePath.stop();
                                         return;
                                     }
@@ -78,8 +80,8 @@ function default_1() {
                     }
                     var dependencyVarNameList_1 = _.map(functionDefinition_1.params, function (p) { return p.name; });
                     var exportedExp = t.objectExpression([]);
-                    var lastStmtOfFunctionBody = _.last(functionDefinition_1.body.body);
                     var functionBody = functionDefinition_1.body.body;
+                    var lastStmtOfFunctionBody = _.last(functionBody);
                     if (lastStmtOfFunctionBody) {
                         if (dependencyVarNameList_1.length > dependencyList_1.length &&
                             !t.isReturnStatement(lastStmtOfFunctionBody)) {

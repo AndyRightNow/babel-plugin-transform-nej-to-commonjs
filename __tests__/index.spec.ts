@@ -11,14 +11,14 @@ describe('babel-plugin-transform-nej-to-commonjs-plugin tests', () => {
                     'text!./somethingelse.html',
                     'pro/with/alias',
                     '{pro}/with/other/alias.js'
-                ], function (
+                ],  (
                     something,
                     somethingElse,
                     withAlias,
                     withOtherAlias,
                     injected1,
                     injected2
-                ) {
+                ) => {
                     var exported = {
                         something: something,
                         somethingElse: somethingElse,
@@ -162,10 +162,10 @@ module.exports = exports;`,
             let source = `
                 var f;
 
-                f = function (
+                f =  (
                     exports,
                     injected1
-                ) {
+                ) => {
                     exports.exported = {
                         something: 1
                     };

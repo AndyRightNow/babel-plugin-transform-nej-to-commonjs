@@ -84,3 +84,28 @@ export function transformDependencyWithNejAliases(
 
     return dependencyDir.replace(/[\/\\]+/g, '/');
 }
+
+export function transformArrowFunctionToFunction(
+    arrowFunction: t.ArrowFunctionExpression | t.FunctionExpression,
+): t.FunctionExpression {
+    let functionBody: t.BlockStatement;
+
+    if (t.isFunctionExpression(arrowFunction)) {
+        return arrowFunction;
+    }
+
+    if (t.isExpression(arrowFunction.body)) {
+        functionBody = t.blockStatement([t.returnStatement(
+            arrowFunction.body,
+        )],
+        );
+    } else {
+        functionBody = arrowFunction.body;
+    }
+
+    return t.functionExpression(
+        undefined,
+        arrowFunction.params,
+        functionBody,
+    );
+}

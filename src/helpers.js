@@ -55,4 +55,18 @@ function transformDependencyWithNejAliases(dependencyDir, nejAliases) {
     return dependencyDir.replace(/[\/\\]+/g, '/');
 }
 exports.transformDependencyWithNejAliases = transformDependencyWithNejAliases;
+function transformArrowFunctionToFunction(arrowFunction) {
+    var functionBody;
+    if (t.isFunctionExpression(arrowFunction)) {
+        return arrowFunction;
+    }
+    if (t.isExpression(arrowFunction.body)) {
+        functionBody = t.blockStatement([t.returnStatement(arrowFunction.body)]);
+    }
+    else {
+        functionBody = arrowFunction.body;
+    }
+    return t.functionExpression(undefined, arrowFunction.params, functionBody);
+}
+exports.transformArrowFunctionToFunction = transformArrowFunctionToFunction;
 //# sourceMappingURL=helpers.js.map

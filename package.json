@@ -5,6 +5,8 @@
   "main": "./src/index.js",
   "scripts": {
     "dev:postinstall": "bower install",
+    "pre-commit": "npm run build && npm run test && npm run test:fixtures",
+    "patch:publish": "npm version patch && npm publish",
     "test": "jest",
     "build": "del-cli ./dist && tsc",
     "test:fixtures": "del-cli ./fixtures/dist && babel ./fixtures/src --out-dir ./fixtures/dist/src && babel ./fixtures/lib --out-dir ./fixtures/dist/lib"

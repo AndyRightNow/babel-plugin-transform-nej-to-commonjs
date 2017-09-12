@@ -14,6 +14,7 @@ import {
     createExportStatement,
     createCommentBlock,
     transformDependencyWithNejAliases,
+    transformArrowFunctionToFunction,
 } from './helpers';
 
 interface IPluginOptions {
@@ -58,8 +59,9 @@ export default function (): babel.PluginObj {
                                 t.assertStringLiteral(el);
                                 return transformDependencyWithNejAliases(el.value, pluginOptions.nejPathAliases);
                             });
-                        } else if (t.isFunctionExpression(arg)) {
-                            functionDefinition = arg;
+                        } else if (t.isFunctionExpression(arg) ||
+                            t.isArrowFunctionExpression(arg)) {
+                            functionDefinition = transformArrowFunctionToFunction(arg);
                         } else if (t.isIdentifier(arg)) {
                             functionDefinitionVar = arg;
                         }
@@ -85,8 +87,9 @@ export default function (): babel.PluginObj {
                                     if (t.isIdentifier(left) &&
                                         functionDefinitionVar &&
                                         left.name === functionDefinitionVar.name &&
-                                        t.isFunctionExpression(right)) {
-                                        functionDefinition = right;
+                                        (t.isFunctionExpression(right) ||
+                                            t.isArrowFunctionExpression(right))) {
+                                        functionDefinition = transformArrowFunctionToFunction(right);
                                         vdaePath.stop();
                                         return;
                                     }
@@ -105,8 +108,8 @@ export default function (): babel.PluginObj {
                     const dependencyVarNameList: string[] =
                         _.map(functionDefinition.params, (p: t.Identifier) => p.name);
                     let exportedExp: t.Identifier | t.Expression = t.objectExpression([]);
-                    const lastStmtOfFunctionBody = _.last(functionDefinition.body.body);
                     let functionBody = functionDefinition.body.body;
+                    const lastStmtOfFunctionBody = _.last(functionBody);
 
                     if (lastStmtOfFunctionBody) {
                         if (dependencyVarNameList.length > dependencyList.length &&
