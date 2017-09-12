@@ -155,7 +155,6 @@ export default function (): babel.PluginObj {
                     );
 
                     commonjsAst.leadingComments = [createCommentBlock(CONSTANTS.ESLINT_GLOBAL_NEJ)];
-
                     programPath.replaceWith(commonjsAst);
                     path.stop();
                 }
