@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-transform-nej-to-commonjs",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A babel plugin used to transform code using NEJ module system to CommonJS module system",
   "main": "./src/index.js",
   "scripts": {
