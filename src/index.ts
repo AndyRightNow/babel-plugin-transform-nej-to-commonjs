@@ -96,12 +96,14 @@ export default function (): babel.PluginObj {
                                 },
                             } as any);
                         } else {
-                            throw new Error('Invalid NEJ function definition');
+                            path.stop();
+                            return;
                         }
                     }
 
                     if (!functionDefinition) {
-                        throw new Error('Invalid NEJ function definition');
+                        path.stop();
+                        return;
                     }
 
                     // Get exported statement

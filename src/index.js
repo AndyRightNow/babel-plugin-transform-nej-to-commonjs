@@ -72,11 +72,13 @@ function default_1() {
                             });
                         }
                         else {
-                            throw new Error('Invalid NEJ function definition');
+                            path.stop();
+                            return;
                         }
                     }
                     if (!functionDefinition_1) {
-                        throw new Error('Invalid NEJ function definition');
+                        path.stop();
+                        return;
                     }
                     var dependencyVarNameList_1 = _.map(functionDefinition_1.params, function (p) { return p.name; });
                     var exportedExp = t.objectExpression([]);
