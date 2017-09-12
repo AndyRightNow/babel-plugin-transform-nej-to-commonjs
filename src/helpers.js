@@ -14,4 +14,23 @@ function createExportStatement(exportedExpression) {
     return t.expressionStatement(t.assignmentExpression('=', t.memberExpression(t.identifier('module'), t.identifier('exports')), exportedExpression));
 }
 exports.createExportStatement = createExportStatement;
+function createCommentBlock(value) {
+    return {
+        type: 'CommentBlock',
+        value: value,
+        start: 0,
+        end: value.length,
+        loc: {
+            start: {
+                line: 0,
+                column: 0
+            },
+            end: {
+                line: 0,
+                column: value.length
+            }
+        }
+    };
+}
+exports.createCommentBlock = createCommentBlock;
 //# sourceMappingURL=helpers.js.map

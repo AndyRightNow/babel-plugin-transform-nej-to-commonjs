@@ -45,14 +45,24 @@ function default_1() {
                         if (functionDefinitionVar_1 &&
                             path.scope.hasBinding(functionDefinitionVar_1.name)) {
                             babel_traverse_1["default"](path.scope.block, {
-                                VariableDeclarator: function (vdPath) {
-                                    var vdNode = vdPath.node;
-                                    if (t.isIdentifier(vdNode.id) &&
+                                'VariableDeclarator|AssignmentExpression': function (vdaePath) {
+                                    var vdaeNode = vdaePath.node;
+                                    var left;
+                                    var right;
+                                    if (t.isVariableDeclarator(vdaeNode)) {
+                                        left = vdaeNode.id;
+                                        right = vdaeNode.init;
+                                    }
+                                    else {
+                                        left = vdaeNode.left;
+                                        right = vdaeNode.right;
+                                    }
+                                    if (t.isIdentifier(left) &&
                                         functionDefinitionVar_1 &&
-                                        vdNode.id.name === functionDefinitionVar_1.name &&
-                                        t.isFunctionExpression(vdNode.init)) {
-                                        functionDefinition_1 = vdNode.init;
-                                        vdPath.stop();
+                                        left.name === functionDefinitionVar_1.name &&
+                                        t.isFunctionExpression(right)) {
+                                        functionDefinition_1 = right;
+                                        vdaePath.stop();
                                         return;
                                     }
                                 }
@@ -80,13 +90,27 @@ function default_1() {
                         exportedExp = lastStmtOfFunctionBody.argument;
                         functionBody = _.slice(functionBody, 0, functionBody.length - 1);
                     }
-                    var commonjsAst = t.program(_.map(dependencyList_1, function (dep, index) {
+                    var requireStatements = _.map(_.slice(dependencyList_1, 0, dependencyVarNameList_1.length), function (dep, index) {
                         return helpers_1.createRequireStatement(dependencyVarNameList_1[index], dep);
-                    }).concat(_.map(_.slice(dependencyVarNameList_1, dependencyList_1.length), function (varName) {
+                    });
+                    for (var i = 0, l = requireStatements.length; i < l; i++) {
+                        requireStatements[i].loc = {
+                            start: {
+                                line: i,
+                                column: 0
+                            },
+                            end: {
+                                line: i,
+                                column: 0
+                            }
+                        };
+                    }
+                    var commonjsAst = t.program(requireStatements.concat(_.map(_.slice(dependencyVarNameList_1, dependencyList_1.length), function (varName) {
                         return helpers_1.createInjectedNejParamDeclaration(varName);
-                    }), functionDefinition_1.body.body, [
+                    }), functionBody, [
                         helpers_1.createExportStatement(exportedExp),
                     ]));
+                    commonjsAst.leadingComments = [helpers_1.createCommentBlock(constants_1["default"].ESLINT_GLOBAL_NEJ)];
                     programPath.replaceWith(commonjsAst);
                     path.stop();
                 }
