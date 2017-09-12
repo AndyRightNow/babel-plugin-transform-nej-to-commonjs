@@ -12,6 +12,7 @@ import {
     createRequireStatement,
     createInjectedNejParamDeclaration,
     createExportStatement,
+    createCommentBlock,
 } from './helpers';
 
 export default function (): babel.PluginObj {
@@ -108,14 +109,34 @@ export default function (): babel.PluginObj {
                         functionBody = _.slice(functionBody, 0, functionBody.length - 1);
                     }
 
-                    // Generate commonjs AST
-                    const commonjsAst = t.program([
-                        ..._.map(_.slice(dependencyList, 0, dependencyVarNameList.length), (dep, index) => {
+                    const requireStatements = _.map(_.slice(
+                        dependencyList,
+                        0,
+                        dependencyVarNameList.length),
+                        (dep, index) => {
                             return createRequireStatement(
                                 dependencyVarNameList[index],
                                 dep,
                             );
-                        }),
+                        });
+
+                    // Adjust lines
+                    for (let i = 0, l = requireStatements.length; i < l; i++) {
+                        requireStatements[i].loc = {
+                            start: {
+                                line: i,
+                                column: 0,
+                            },
+                            end: {
+                                line: i,
+                                column: 0,
+                            },
+                        };
+                    }
+
+                    // Generate commonjs AST
+                    const commonjsAst = t.program([
+                        ...requireStatements,
                         ..._.map(_.slice(dependencyVarNameList, dependencyList.length), (varName) => {
                             return createInjectedNejParamDeclaration(varName);
                         }),
@@ -123,6 +144,8 @@ export default function (): babel.PluginObj {
                         createExportStatement(exportedExp),
                     ],
                     );
+
+                    commonjsAst.leadingComments = [createCommentBlock(CONSTANTS.ESLINT_GLOBAL_NEJ)];
 
                     programPath.replaceWith(commonjsAst);
                     path.stop();

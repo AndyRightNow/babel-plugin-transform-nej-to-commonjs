@@ -41,7 +41,8 @@ describe('babel-plugin-transform-nej-to-commonjs-plugin tests', () => {
                 );
 
             expect(code).toEqual(
-                `var something = require('./something.js');
+                `/* global NEJ */
+var something = require('./something.js');
 
 var somethingElse = require('text!./somethingelse.html');
 
@@ -95,12 +96,13 @@ module.exports = exported;`,
                     source, {
                         plugins: [
                             transformNejToCommonjsPlugin,
-                        ],
+                        ]
                     },
                 );
 
             expect(code).toEqual(
-                `var something = require('./something.js');
+                `/* global NEJ */
+var something = require('./something.js');
 
 var somethingElse = require('text!./somethingelse.html');
 
@@ -146,7 +148,7 @@ module.exports = exports;`,
                 );
 
             expect(code).toEqual(
-                `var exports = {};
+                `/* global NEJ */var exports = {};
 var injected1 = {};
 
 exports.exported = {
@@ -183,7 +185,7 @@ module.exports = exports;`,
                 );
 
             expect(code).toEqual(
-                `var exports = {};
+                `/* global NEJ */var exports = {};
 var injected1 = {};
 
 exports.exported = {

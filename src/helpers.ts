@@ -1,7 +1,10 @@
 import * as t from 'babel-types';
 import CONSTANTS from './constants';
 
-export function createRequireStatement(varName: string, requireDir: string): t.VariableDeclaration {
+export function createRequireStatement(
+    varName: string,
+    requireDir: string,
+): t.VariableDeclaration {
     return t.variableDeclaration(
         'var',
         [t.variableDeclarator(
@@ -35,4 +38,23 @@ export function createExportStatement(exportedExpression: t.Expression): t.Expre
             exportedExpression,
         ),
     );
+}
+
+export function createCommentBlock(value: string): t.CommentBlock {
+    return {
+        type: 'CommentBlock',
+        value,
+        start: 0,
+        end: value.length,
+        loc: {
+            start: {
+                line: 0,
+                column: 0,
+            },
+            end: {
+                line: 0,
+                column: value.length,
+            },
+        },
+    };
 }
