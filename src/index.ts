@@ -57,19 +57,29 @@ export default function (): babel.PluginObj {
                         if (functionDefinitionVar &&
                             path.scope.hasBinding(functionDefinitionVar.name)) {
                             traverse(path.scope.block, {
-                                VariableDeclarator(vdPath: NodePath) {
-                                    const vdNode = vdPath.node as t.VariableDeclarator;
+                                'VariableDeclarator|AssignmentExpression': (vdaePath: NodePath) => {
+                                    const vdaeNode = vdaePath.node as t.VariableDeclarator | t.AssignmentExpression;
+                                    let left: t.LVal;
+                                    let right: t.Expression;
 
-                                    if (t.isIdentifier(vdNode.id) &&
+                                    if (t.isVariableDeclarator(vdaeNode)) {
+                                        left = vdaeNode.id;
+                                        right = vdaeNode.init;
+                                    } else {
+                                        left = vdaeNode.left;
+                                        right = vdaeNode.right;
+                                    }
+
+                                    if (t.isIdentifier(left) &&
                                         functionDefinitionVar &&
-                                        vdNode.id.name === functionDefinitionVar.name &&
-                                        t.isFunctionExpression(vdNode.init)) {
-                                        functionDefinition = vdNode.init;
-                                        vdPath.stop();
+                                        left.name === functionDefinitionVar.name &&
+                                        t.isFunctionExpression(right)) {
+                                        functionDefinition = right;
+                                        vdaePath.stop();
                                         return;
                                     }
                                 },
-                            });
+                            } as any);
                         } else {
                             throw new Error('Invalid NEJ function definition');
                         }

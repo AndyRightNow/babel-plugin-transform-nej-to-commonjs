@@ -62,5 +62,135 @@ var exported = {
 module.exports = exported;`,
             );
         });
+
+        it('should be ok with define, variable function definition and injected export ', () => {
+            let source = `
+                var f = function (
+                    something,
+                    somethingElse,
+                    withAlias,
+                    withOtherAlias,
+                    exports,
+                    injected1
+                ) {
+                    exports.exported = {
+                        something: something,
+                        somethingElse: somethingElse,
+                        withAlias: withAlias,
+                        withOtherAlias: withOtherAlias
+                    };
+                };
+
+                NEJ.define([
+                    './something.js',
+                    'text!./somethingelse.html',
+                    'pro/with/alias',
+                    '{pro}/with/other/alias.js'
+                ], f);
+            `;
+
+            let {
+                code
+            } = babel.transform(
+                    source, {
+                        plugins: [
+                            transformNejToCommonjsPlugin,
+                        ],
+                    },
+                );
+
+            expect(code).toEqual(
+                `var something = require('./something.js');
+
+var somethingElse = require('text!./somethingelse.html');
+
+var withAlias = require('pro/with/alias');
+
+var withOtherAlias = require('{pro}/with/other/alias.js');
+
+var exports = {};
+var injected1 = {};
+
+exports.exported = {
+    something: something,
+    somethingElse: somethingElse,
+    withAlias: withAlias,
+    withOtherAlias: withOtherAlias
+};
+module.exports = exports;`,
+            );
+        });
+        
+        it('should be ok with define, variable function definition and no dependencies ', () => {
+            let source = `
+                var f = function (
+                    exports,
+                    injected1
+                ) {
+                    exports.exported = {
+                        something: 1
+                    };
+                };
+
+                NEJ.define([], f);
+            `;
+
+            let {
+                code
+            } = babel.transform(
+                    source, {
+                        plugins: [
+                            transformNejToCommonjsPlugin,
+                        ],
+                    },
+                );
+
+            expect(code).toEqual(
+                `var exports = {};
+var injected1 = {};
+
+exports.exported = {
+    something: 1
+};
+module.exports = exports;`,
+            );
+        });
+        
+        it('should be ok with define, standalone variable function definition and no dependencies ', () => {
+            let source = `
+                var f;
+
+                f = function (
+                    exports,
+                    injected1
+                ) {
+                    exports.exported = {
+                        something: 1
+                    };
+                };
+
+                NEJ.define([], f);
+            `;
+
+            let {
+                code
+            } = babel.transform(
+                    source, {
+                        plugins: [
+                            transformNejToCommonjsPlugin,
+                        ],
+                    },
+                );
+
+            expect(code).toEqual(
+                `var exports = {};
+var injected1 = {};
+
+exports.exported = {
+    something: 1
+};
+module.exports = exports;`,
+            );
+        });
     });
 });
