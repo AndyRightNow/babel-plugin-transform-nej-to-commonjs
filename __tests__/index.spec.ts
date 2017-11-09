@@ -194,5 +194,34 @@ exports.exported = {
 module.exports = exports;`,
             );
         });
+        
+        it('should be ok with mixed define ', () => {
+            let source = `
+!function (name, definition) {
+if (typeof module != 'undefined' && module.exports) module.exports = definition();
+else if (typeof NEJ !== 'undefined' && NEJ.define) NEJ.define(['util/encode/md5'],definition);
+else this[name] = definition()
+}('objectUtil', function ( _md5) {
+    return _md5;
+});
+            `;
+
+            let {
+                code
+            } = babel.transform(
+                    source, {
+                        plugins: [
+                            transformNejToCommonjsPlugin,
+                        ],
+                    },
+                );
+
+            expect(code).toEqual(
+                `/* global NEJ */
+var _md5 = require('util/encode/md5');
+
+module.exports = _md5;`,
+            );
+        });
     });
 });

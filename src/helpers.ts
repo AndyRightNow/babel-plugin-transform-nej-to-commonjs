@@ -2,40 +2,24 @@ import * as t from 'babel-types';
 import CONSTANTS from './constants';
 import { forOwn } from 'lodash';
 
-export function createRequireStatement(
-    varName: string,
-    requireDir: string,
-): t.VariableDeclaration {
-    return t.variableDeclaration(
-        'var',
-        [t.variableDeclarator(
+export function createRequireStatement(varName: string, requireDir: string): t.VariableDeclaration {
+    return t.variableDeclaration('var', [
+        t.variableDeclarator(
             t.identifier(varName),
-            t.callExpression(
-                t.identifier(CONSTANTS.COMMONJS_REQUIRE),
-                [t.stringLiteral(requireDir)],
-            ),
-        )],
-    );
+            t.callExpression(t.identifier(CONSTANTS.COMMONJS_REQUIRE), [t.stringLiteral(requireDir)]),
+        ),
+    ]);
 }
 
 export function createInjectedNejParamDeclaration(varName: string): t.VariableDeclaration {
-    return t.variableDeclaration(
-        'var',
-        [t.variableDeclarator(
-            t.identifier(varName),
-            t.objectExpression([]),
-        )],
-    );
+    return t.variableDeclaration('var', [t.variableDeclarator(t.identifier(varName), t.objectExpression([]))]);
 }
 
 export function createExportStatement(exportedExpression: t.Expression): t.ExpressionStatement {
     return t.expressionStatement(
         t.assignmentExpression(
             '=',
-            t.memberExpression(
-                t.identifier('module'),
-                t.identifier('exports'),
-            ),
+            t.memberExpression(t.identifier('module'), t.identifier('exports')),
             exportedExpression,
         ),
     );
@@ -62,7 +46,7 @@ export function createCommentBlock(value: string): t.CommentBlock {
 
 export function transformDependencyWithNejAliases(
     dependencyDir: string,
-    nejAliases?: { [alias: string]: string; },
+    nejAliases?: { [alias: string]: string },
 ): string {
     if (!nejAliases) {
         return dependencyDir;
@@ -95,17 +79,10 @@ export function transformArrowFunctionToFunction(
     }
 
     if (t.isExpression(arrowFunction.body)) {
-        functionBody = t.blockStatement([t.returnStatement(
-            arrowFunction.body,
-        )],
-        );
+        functionBody = t.blockStatement([t.returnStatement(arrowFunction.body)]);
     } else {
         functionBody = arrowFunction.body;
     }
 
-    return t.functionExpression(
-        undefined,
-        arrowFunction.params,
-        functionBody,
-    );
+    return t.functionExpression(undefined, arrowFunction.params, functionBody);
 }

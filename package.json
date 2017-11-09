@@ -2,14 +2,15 @@
   "name": "babel-plugin-transform-nej-to-commonjs",
   "version": "0.0.4",
   "description": "A babel plugin used to transform code using NEJ module system to CommonJS module system",
-  "main": "./src/index.js",
+  "main": "./dist/index.js",
   "scripts": {
     "dev:postinstall": "bower install",
     "pre-commit": "npm run build && npm run test && npm run test:fixtures",
     "patch:publish": "npm version patch && npm publish",
     "test": "jest",
     "build": "del-cli ./dist && tsc",
-    "test:fixtures": "del-cli ./fixtures/dist && babel ./fixtures/src --out-dir ./fixtures/dist/src && babel ./fixtures/lib --out-dir ./fixtures/dist/lib"
+    "test:fixtures": "del-cli ./fixtures/dist && babel ./fixtures/src --out-dir ./fixtures/dist/src",
+    "lint": "prettier ./src/**/**/*.ts --write && tslint -p ./tsconfig.json --fix"
   },
   "keywords": [
     "babel",
@@ -34,6 +35,7 @@
     "chai": "^4.1.2",
     "del-cli": "^1.1.0",
     "jest": "^21.0.2",
+    "prettier": "^1.8.1",
     "ts-jest": "^21.0.0",
     "tslint": "^5.7.0",
     "typescript": "^2.5.2"
@@ -62,5 +64,13 @@
       "js",
       "json"
     ]
+  },
+  "prettier": {
+    "printWidth": 120,
+    "tabWidth": 4,
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "all",
+    "parser": "typescript"
   }
 }

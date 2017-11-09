@@ -3,6 +3,7 @@
         "module": "commonjs",
         "noImplicitAny": true,
         "removeComments": true,
+        "outDir": "./dist",
         "preserveConstEnums": true,
         "sourceMap": true,
         "noImplicitThis": true,
@@ -10,9 +11,11 @@
         "noImplicitReturns": true,
         "allowSyntheticDefaultImports": true,
         "noUnusedLocals": true,
-        "noUnusedParameters": true
+        "noUnusedParameters": true,
+        "rootDir": "src"
     },
     "exclude": [
-        "node_modules"
+        "node_modules",
+        "__tests__"
     ]
 }

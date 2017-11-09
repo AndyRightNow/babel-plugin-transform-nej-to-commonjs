@@ -6,7 +6,10 @@
             "request": "launch",
             "name": "Debug Test",
             "program": "${workspaceRoot}/node_modules/jest/bin/jest.js",
-            "stopOnEntry": true
+            "stopOnEntry": true,
+            "args": [
+                "--runInBand"
+            ]
         }
     ]
 }

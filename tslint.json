@@ -3,7 +3,7 @@
 	"rules": {
 		"no-unused-expression": true,
 		"no-duplicate-variable": true,
-		"no-unused-variable": true,
+		"no-unused-variable": false,
 		"curly": true,
 		"class-name": true,
 		"semicolon": [
@@ -11,13 +11,14 @@
 		],
 		"triple-equals": true,
 		"quotemark": [
-			"single"
+			true, "single"
 		],
 		"ordered-imports": false,
 		"space-before-function-paren": false,
 		"eofline": false,
 		"object-literal-sort-keys": [
 			false
-		]
+		],
+		"arrow-parens": [false]
 	}
 }

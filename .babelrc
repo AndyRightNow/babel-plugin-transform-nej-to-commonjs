@@ -1,6 +1,6 @@
 {
     "plugins": [
-        ["./src/", {
+        ["./dist/", {
             "nejPathAliases": {
                 "platform": "./platform/",
                 "base": "fixtures/dist/lib/nej/src/base/",
