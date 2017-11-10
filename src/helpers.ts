@@ -11,8 +11,21 @@ export function createRequireStatement(varName: string, requireDir: string): t.V
     ]);
 }
 
-export function createInjectedNejParamDeclaration(varName: string): t.VariableDeclaration {
-    return t.variableDeclaration('var', [t.variableDeclarator(t.identifier(varName), t.objectExpression([]))]);
+export function createInjectedNejParamDeclaration(varName: string, index: number): t.VariableDeclaration {
+    let rightHandSide: t.FunctionExpression | t.ObjectExpression | t.ArrayExpression = t.objectExpression([]);
+
+    switch (index) {
+        // Injected function
+        case 2:
+            rightHandSide = t.functionExpression(undefined, [], t.blockStatement([]));
+            break;
+        // Injected array
+        case 3:
+            rightHandSide = t.arrayExpression([]);
+            break;
+    }
+
+    return t.variableDeclaration('var', [t.variableDeclarator(t.identifier(varName), rightHandSide)]);
 }
 
 export function createExportStatement(exportedExpression: t.Expression): t.ExpressionStatement {
@@ -85,4 +98,8 @@ export function transformArrowFunctionToFunction(
     }
 
     return t.functionExpression(undefined, arrowFunction.params, functionBody);
+}
+
+export function isFunction(node: t.Node): node is t.FunctionExpression | t.ArrowFunctionExpression {
+    return t.isFunctionExpression(node) || t.isArrowFunctionExpression(node);
 }

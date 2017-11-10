@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import * as babel from 'babel-core';
 import * as t from 'babel-types';
 
-import { NodePath, default as traverse } from 'babel-traverse';
+import { NodePath, Binding } from 'babel-traverse';
 
 import CONSTANTS from './constants';
 import {
@@ -12,6 +12,7 @@ import {
     createCommentBlock,
     transformDependencyWithNejAliases,
     transformArrowFunctionToFunction,
+    isFunction,
 } from './helpers';
 
 interface IPluginOptions {
@@ -58,7 +59,7 @@ export default function (): babel.PluginObj {
                                     );
                                 }
                             }
-                        } else if (t.isFunctionExpression(arg) || t.isArrowFunctionExpression(arg)) {
+                        } else if (isFunction(arg)) {
                             functionDefinition = transformArrowFunctionToFunction(arg);
                         } else if (t.isIdentifier(arg)) {
                             functionDefinitionVar = arg;
@@ -66,64 +67,52 @@ export default function (): babel.PluginObj {
                     });
 
                     if (!functionDefinition) {
-                        if (functionDefinitionVar && path.scope.hasBinding(functionDefinitionVar.name)) {
-                            traverse(path.scope.block, {
-                                'VariableDeclarator|AssignmentExpression|Identifier': (vaiPath: NodePath) => {
-                                    const vaiNode = vaiPath.node as
-                                        | t.VariableDeclarator
-                                        | t.AssignmentExpression
-                                        | t.Identifier;
-                                    let left: t.LVal | undefined;
-                                    let right: t.Expression | undefined;
+                        if (functionDefinitionVar) {
+                            let binding: Binding | undefined;
 
-                                    if (t.isVariableDeclarator(vaiNode)) {
-                                        left = vaiNode.id;
-                                        right = vaiNode.init;
-                                    } else if (t.isAssignmentExpression(vaiNode)) {
-                                        left = vaiNode.left;
-                                        right = vaiNode.right;
-                                    } else {
-                                        if (functionDefinitionVar &&
-                                            vaiNode.name === functionDefinitionVar.name &&
-                                            t.isFunctionExpression(vaiPath.parent)) {
-                                            let argPos = 1;
-                                            for (let i = 0, l = vaiPath.parent.params.length; i < l; i++) {
-                                                const param = vaiPath.parent.params[i];
+                            if (path.scope.parent &&
+                                path.scope.parent.hasBinding(functionDefinitionVar.name)) {
+                                binding = path.scope.parent.getBinding(functionDefinitionVar.name);
+                            } else {
+                                binding = path.scope.getBinding(functionDefinitionVar.name);
+                            }
 
-                                                if (t.isIdentifier(param) &&
-                                                    param.name === functionDefinitionVar.name) {
-                                                    argPos = i;
-                                                    break;
-                                                }
-                                            }
-                                            const callExp = vaiPath.scope.parent.parentBlock;
-                                            if (t.isCallExpression(callExp)) {
-                                                const fn = callExp.arguments[argPos];
-                                                if (t.isFunctionExpression(fn)) {
-                                                    functionDefinition = fn;
-                                                }
-                                            }
+                            if (binding) {
+                                const bindingPath = binding.path;
+                                let fnDef: t.FunctionExpression | t.ArrowFunctionExpression | undefined;
+
+                                if (bindingPath.parentKey === 'params' && t.isFunctionExpression(bindingPath.parent)) {
+                                    const argPos = _.findIndex(
+                                        bindingPath.parent.params,
+                                        param => param === bindingPath.node,
+                                    );
+                                    const firstCallExpParent = bindingPath.findParent(p => t.isCallExpression(p));
+                                    fnDef = (firstCallExpParent && t.isCallExpression(firstCallExpParent.node)
+                                        ? firstCallExpParent.node.arguments[argPos]
+                                        : firstCallExpParent.node) as typeof fnDef;
+                                } else if (
+                                    t.isVariableDeclarator(bindingPath.node) &&
+                                    isFunction(bindingPath.node.init)
+                                ) {
+                                    fnDef = bindingPath.node.init;
+                                } else {
+                                    for (const refPath of binding.referencePaths) {
+                                        if (t.isAssignmentExpression(refPath.parent) &&
+                                            isFunction(refPath.parent.right)) {
+                                            fnDef = refPath.parent.right;
                                         }
                                     }
+                                }
 
-                                    if (left && right &&
-                                        t.isIdentifier(left) &&
-                                        functionDefinitionVar &&
-                                        left.name === functionDefinitionVar.name &&
-                                        (t.isFunctionExpression(right) || t.isArrowFunctionExpression(right))
-                                    ) {
-                                        functionDefinition = transformArrowFunctionToFunction(right);
-                                        vaiPath.stop();
-                                        return;
-                                    }
-                                },
-                            } as any, path.scope);
+                                if (fnDef && isFunction(fnDef)) {
+                                    functionDefinition = transformArrowFunctionToFunction(fnDef);
+                                }
+                            }
                         } else {
                             path.stop();
                             return;
                         }
                     }
-
                     if (!functionDefinition) {
                         path.stop();
                         return;
@@ -174,8 +163,8 @@ export default function (): babel.PluginObj {
                     // Generate commonjs AST
                     const commonjsAst = t.program([
                         ...requireStatements,
-                        ..._.map(_.slice(dependencyVarNameList, dependencyList.length), varName => {
-                            return createInjectedNejParamDeclaration(varName);
+                        ..._.map(_.slice(dependencyVarNameList, dependencyList.length), (varName, index) => {
+                            return createInjectedNejParamDeclaration(varName, index);
                         }),
                         ...functionBody,
                         createExportStatement(exportedExp),
