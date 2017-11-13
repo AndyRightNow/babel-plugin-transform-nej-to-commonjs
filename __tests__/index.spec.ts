@@ -223,5 +223,73 @@ var _md5 = require('util/encode/md5');
 module.exports = _md5;`,
             );
         });
+        
+        it('should inject correct nej vars', () => {
+            let source = `
+NEJ.define([], function (o1, o2, f, a) {
+    return o1;
+}) `;
+
+            let {
+                code
+            } = babel.transform(
+                    source, {
+                        plugins: [
+                            transformNejToCommonjsPlugin,
+                        ],
+                    },
+                );
+
+            expect(code).toEqual(
+                `/* global NEJ */var o1 = {};
+var o2 = {};
+
+var f = function () {};
+
+var a = [];
+module.exports = o1;`,
+            );
+        });
+
+        it('should handle conditional return correctly', () => {
+            let source = `
+NEJ.define([], function (exports) {
+    if (1) {
+        if (2) {
+            return 3;
+        }
+    }
+
+    if (0) {
+        return 5;
+    }
+
+    return exports;
+}) `;
+
+            let {
+                code
+            } = babel.transform(
+                    source, {
+                        plugins: [
+                            transformNejToCommonjsPlugin,
+                        ],
+                    },
+                );
+
+            expect(code).toEqual(
+                `/* global NEJ */var exports = {};
+if (1) {
+    if (2) {
+        module.exports = 3;
+}
+
+if (0) {
+    module.exports = 5;
+}
+
+module.exports = exports;`,
+            );
+        });
     });
 });

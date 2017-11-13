@@ -14,6 +14,7 @@ import {
     transformArrowFunctionToFunction,
     isFunction,
 } from './helpers';
+import { traverse } from 'babel-core';
 
 interface IPluginOptions {
     nejPathAliases: {
@@ -24,7 +25,7 @@ interface IPluginOptions {
     };
 }
 
-export default function (): babel.PluginObj {
+export default function(): babel.PluginObj {
     let programPath: NodePath;
 
     return {
@@ -70,8 +71,7 @@ export default function (): babel.PluginObj {
                         if (functionDefinitionVar) {
                             let binding: Binding | undefined;
 
-                            if (path.scope.parent &&
-                                path.scope.parent.hasBinding(functionDefinitionVar.name)) {
+                            if (path.scope.parent && path.scope.parent.hasBinding(functionDefinitionVar.name)) {
                                 binding = path.scope.parent.getBinding(functionDefinitionVar.name);
                             } else {
                                 binding = path.scope.getBinding(functionDefinitionVar.name);
@@ -96,12 +96,25 @@ export default function (): babel.PluginObj {
                                 ) {
                                     fnDef = bindingPath.node.init;
                                 } else {
-                                    for (const refPath of binding.referencePaths) {
-                                        if (t.isAssignmentExpression(refPath.parent) &&
-                                            isFunction(refPath.parent.right)) {
-                                            fnDef = refPath.parent.right;
-                                        }
-                                    }
+                                    traverse(
+                                        binding.path.scope.block,
+                                        {
+                                            AssignmentExpression(aePath: NodePath<t.AssignmentExpression>) {
+                                                const aeNode = aePath.node;
+
+                                                if (
+                                                    t.isIdentifier(aeNode.left) &&
+                                                    functionDefinitionVar &&
+                                                    aeNode.left.name === functionDefinitionVar.name &&
+                                                    isFunction(aeNode.right)
+                                                ) {
+                                                    fnDef = aeNode.right;
+                                                    aePath.stop();
+                                                }
+                                            },
+                                        },
+                                        binding.path.scope,
+                                    );
                                 }
 
                                 if (fnDef && isFunction(fnDef)) {
@@ -113,6 +126,7 @@ export default function (): babel.PluginObj {
                             return;
                         }
                     }
+
                     if (!functionDefinition) {
                         path.stop();
                         return;
